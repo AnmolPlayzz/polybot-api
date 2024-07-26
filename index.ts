@@ -23,12 +23,16 @@ app.post("/server",async (req: Request, res: Response) => {
     })
     try {
         const server: Guild = await client.guilds.fetch(id)
+        const name: string = server.name;
+        const iconUrl: string | null = server.iconURL()
         const memberCount: number = server.memberCount;
         const botCount: number = (await server.members.fetch()).filter(m => m.user.bot).size
         const roleCount: number = (await server.roles.fetch()).size
         const channelCount: number = (await server.channels.fetch()).size
         res.status(200).json({
-            id: id,
+            id,
+            name,
+            iconUrl,
             memberCount,
             botCount,
             roleCount,
