@@ -14,7 +14,7 @@ const client: Client = new Client({
 const app: Express = express();
 app.use(express.json());
 
-app.get("/server",async (req: Request, res: Response) => {
+app.post("/server",async (req: Request, res: Response) => {
     const { id }: {
         id: Snowflake | undefined
     } = req.body;
