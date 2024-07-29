@@ -6,8 +6,7 @@ if (!TOKEN) {
     throw new Error("No token found!")
 }
 import express, {Express, Request, Response} from "express";
-import {Client, GatewayIntentBits, Guild, Snowflake} from "discord.js";
-
+import {Client, GatewayIntentBits, Guild, Snowflake, ChannelType} from "discord.js";
 const client: Client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
@@ -43,6 +42,54 @@ app.post("/server",async (req: Request, res: Response) => {
         res.status(500).json({
             error: e.message,
         })
+    }
+})
+
+app.post("/channels", async (req: Request, res: Response) => {
+        const { guildId, channelType }: {
+        guildId: Snowflake | undefined,
+        channelType:  ChannelType.GuildCategory | ChannelType.GuildAnnouncement | ChannelType.GuildStageVoice | ChannelType.GuildText | ChannelType.GuildVoice | ChannelType.GuildForum | ChannelType.GuildMedia | undefined,
+    } = req.body;
+    /*
+    Nomenclature
+    - category: 4
+    - announcement: 5
+    - text: 0
+    - forum: 15
+    - stage: 13
+    - voice: 2
+    - thread (public): 12
+    - thread (private): 11
+    */
+
+    if (!guildId) return res.status(403).json({
+        error: "No ID found!"
+    })
+    if (!channelType) return res.status(403).json({
+        error: "No channel type found!"
+    })
+    try {
+        const server: Guild = await client.guilds.fetch(guildId);
+        const channels = (await server.channels.fetch()).filter(channel => {
+            if(channel) {
+                return channel.type==channelType
+            }
+        })
+        const mappedChannels = channels.map(channel => {
+            if(channel) {
+                return {
+                    id: channel.id,
+                    name: channel.name,
+                    type: channel.type
+                }
+            }
+        })
+        res.status(200).json({
+            id: guildId,
+            channels: mappedChannels,
+        })
+    } catch (e) {
+        console.error(e)
     }
 })
 
