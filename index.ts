@@ -46,7 +46,7 @@ app.post("/server",async (req: Request, res: Response) => {
 })
 
 app.post("/channels", async (req: Request, res: Response) => {
-        const { guildId, channelType }: {
+    const { guildId, channelType }: {
         guildId: Snowflake | undefined,
         channelType:  ChannelType.GuildCategory | ChannelType.GuildAnnouncement | ChannelType.GuildStageVoice | ChannelType.GuildText | ChannelType.GuildVoice | ChannelType.GuildForum | ChannelType.GuildMedia | undefined,
     } = req.body;
@@ -87,6 +87,40 @@ app.post("/channels", async (req: Request, res: Response) => {
         res.status(200).json({
             id: guildId,
             channels: mappedChannels,
+        })
+    } catch (e) {
+        console.error(e)
+    }
+})
+
+app.post("/roles", async (req: Request, res: Response) => {
+    const { guildId }: {
+        guildId: Snowflake | undefined,
+    } = req.body;
+
+    if (!guildId) return res.status(403).json({
+        error: "No ID found!"
+    })
+
+    try {
+        const server: Guild = await client.guilds.fetch(guildId);
+        const roles = (await server.roles.fetch()).filter(role => {
+            if(role) {
+                return !role.managed && role.name!=="@everyone"
+            }
+        })
+        const mappedRoles = roles.map(role => {
+            if(role) {
+                return {
+                    id: role.id,
+                    name: role.name,
+                    color: role.color
+                }
+            }
+        })
+        res.status(200).json({
+            "id": guildId,
+            "roles": mappedRoles,
         })
     } catch (e) {
         console.error(e)
